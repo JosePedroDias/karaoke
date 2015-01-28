@@ -1,0 +1,26 @@
+{
+  "song": {
+    "_id": 20014609,
+    "songName": "Don't Stop Believing (Small Town Girl)",
+    "singerName": "Journey",
+    "songUrl": "http://data2.ising.bz/data/karaokes/all/20014609.mp3",
+    "approvedLyric": "aglzfmlrYXJhNG1yDgsSBUx5cmljGJ6h4AYM",
+    "lyrics": [
+      {
+        "key": "aglzfmlrYXJhNG1yDgsSBUx5cmljGJ6h4AYM",
+        "privatedId": 1,
+        "ownerId": "admin",
+        "url": "http://www.ikara.co/test/getlyric?lyrickey=aglzfmlrYXJhNG1yDgsSBUx5cmljGJ6h4AYM",
+        "content": null,
+        "openningNo": 0,
+        "totalRating": 31,
+        "ratingCount": 7,
+        "date": 1381040536658,
+        "yourRating": null,
+        "type": 1
+      }
+    ],
+    "viewCounter": 16
+  },
+  "callback": "GetSong"
+}

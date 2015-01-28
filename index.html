@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+
+		<title>karaoke</title>
+
+		<style type="text/css">
+			body {
+				font-family: sans-serif;
+				padding: 0;
+				margin: 2em;
+				text-align: center;
+			}
+
+			.lyrics {
+				font-size: 1.3em;
+				line-height: 1.6em;
+				display: inline-block;
+				margin: 3em auto;
+				text-align: left;
+			}
+
+			.active-line {
+				color: blue;
+			}
+
+			.active-word {
+				color: red;
+			}
+
+			.song, .artist {
+				position: absolute;
+				top: 0.5em;
+			}
+
+			.song {
+				left: 1em;
+			}
+
+			.artist {
+				right: 1em;
+			}
+		</style>
+
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/superagent/0.15.7/superagent.min.js"></script>
+	</head>
+
+	<body>
+		<script type="text/javascript">
+			var song = 'Journey-Dont_Stop_Believing';
+
+			var renderLyrics = function(lines) {
+				var ctnEl = document.createElement('div');
+				ctnEl.className = 'lyrics';
+
+				var dom = lines.map(function(l) {
+					var dEl = document.createElement('div');
+					var spanEls = l.map(function(w) {
+						var sEl = document.createElement('span');
+						sEl.appendChild( document.createTextNode(w[1]) );
+						dEl.appendChild(sEl);
+						return sEl;
+					});
+					ctnEl.appendChild(dEl);
+					return spanEls;
+				});
+
+				document.body.appendChild(ctnEl);
+
+				return dom;
+			};
+
+			var simplifyFormat = function(body) {
+				return body.lines.map(function(l) {
+					return l.words.map(function(w) {
+						return [w.startTime, w.text];
+					});
+				});
+			};
+
+			var setupAudio = function(song) {
+				var aEl = document.createElement('audio');
+				document.body.appendChild(aEl);
+				aEl.src = 'songs/' + song + '/track.mp3';
+				return aEl;
+			};
+
+			superagent
+				.get('songs/' + song + '/metadata.json')
+				.end(function(err, res) {
+					if (err) { return window.alert('error fetching metadata!'); }
+
+					var h1El = document.createElement('h1');
+					h1El.appendChild( document.createTextNode(res.body.song.songName) );
+					h1El.className = 'song';
+					document.body.appendChild(h1El);
+
+					h1El = document.createElement('h1');
+					h1El.appendChild( document.createTextNode(res.body.song.singerName) );
+					h1El.className = 'artist';
+					document.body.appendChild(h1El);
+
+					superagent
+						.get('songs/' + song + '/lyrics.json')
+						.end(function(err, res) {
+							if (err) { return window.alert('error fetching lyrics!'); }
+
+							var lines = simplifyFormat(res.body);
+							//document.body.innerHTML = JSON.stringify(lines);
+
+							var dom = renderLyrics(lines);
+							//console.log(dom);
+
+							var aEl = setupAudio(song);
+
+							var currLineIndex = 0;
+							var currSpans = dom[currLineIndex]
+							var currLine = currSpans[0].parentNode;
+							var currSpanIndex = 0;
+							var currSpan = currSpans[currSpanIndex];
+							currLine.className = 'active-line';
+							currSpan.className = 'active-word';
+
+							aEl.addEventListener('timeupdate', function() {
+								console.log(aEl.currentTime.toFixed(2)+'s', (aEl.currentTime/aEl.duration*100).toFixed(1)+'%');
+							});
+						});
+				});
+		</script>
+	</body>
+</html>
