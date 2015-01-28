@@ -1,0 +1,22 @@
+{
+  "name": "karaoke",
+  "version": "1.0.0",
+  "description": "[check it out](http://josepedrodias.github.io/karaoke/)",
+  "main": "karaoke.js",
+  "scripts": {
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JosePedroDias/karaoke.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JosePedroDias/karaoke/issues"
+  },
+  "homepage": "https://github.com/JosePedroDias/karaoke",
+  "dependencies": {
+    "htmlparser": "^1.7.7",
+    "superagent": "^0.21.0"
+  }
+}
