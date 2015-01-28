@@ -1,0 +1,49 @@
+body {
+	font-family: sans-serif;
+	padding: 0;
+	margin: 30em 0;
+	text-align: center;
+}
+
+h1 {
+	font-size: 1.6em;
+	opacity: 0.5;
+	position: fixed;
+	left: 1em;
+}
+
+.lyrics {
+	font-size: 1.3em;
+	line-height: 1.6em;
+	display: inline-block;
+	margin: 3em auto;
+	text-align: left;
+}
+
+.active-line {
+	color: blue;
+}
+
+.past-line {
+	color: #666;
+}
+
+.active-word {
+	color: red;
+}
+
+.song {
+	top: 0.5em;
+}
+
+.artist {
+	top: 1.5em;
+}
+
+.progress {
+	opacity: 1;
+	bottom: 0.5em;
+	color: #555;
+	background-color: rgba(255, 255, 255, 0.75);
+	padding: 0.25em;
+}
