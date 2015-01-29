@@ -122,7 +122,7 @@ var querySong = function(term, cb) {
 /*
 	2) PROCESS SONG PAGE
 */
-var processSongPage = function(songUrl, cb) {
+var getSongPageData = function(songUrl, cb) {
 	request
 		.get(songUrl)
 		
@@ -153,7 +153,7 @@ var processSongPage = function(songUrl, cb) {
 		});
 };
 
-/*processSongPage('http://www.ukara.net/karaoke/enter-sandman-30016810', function(err, res) {
+/*getSongPageData('http://www.ukara.net/karaoke/enter-sandman-30016810', function(err, res) {
 	console.log(err, res);
 });*/
 
@@ -240,14 +240,174 @@ var getSongMetadata = function(songParams, cb) {
 	-H 'Referer: http://www.ukara.net/karaoke/don%27t-stop-believing-%28small-town-girl%29-20014609'
 	-H 'X-Requested-With: ShockwaveFlash/16.0.0.296'
 	-H 'Connection: keep-alive' --compressed
+*/
 
-	TODO
+var simplifyFormat = function(body) {
+	return body.lines.map(function(l) {
+		return l.words.map(function(w) {
+			return [w.startTime, w.text];
+		});
+	});
+};
+
+var getSongLyrics = function(lyricsKey, cb) {
+	request
+		.get('http://www.ikara.co/test/getlyric?lyrickey=' + lyricsKey)
+
+		.set('Origin', 'http://www.ukara.net')
+		.set('Accept-Language', 'en-US,en;q=0.8,pt-PT;q=0.6,pt;q=0.4,es;q=0.2,fr;q=0.2,nb;q=0.2')
+		.set('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.93 Safari/537.36')
+		.set('Accept', '*/*')
+		.set('Referer', 'http://www.ukara.net/karaoke/Main.swf')
+		.set('X-Requested-With', 'ShockwaveFlash/16.0.0.296')
+		//.set('Connection', 'keep-alive')
+
+		.end(function(err, resp) {
+			if (err) { return cb(err); }
+
+			//console.log(resp.statusCode, resp.text);
+
+			//fs.writeFileSync('a.json', resp.text);
+
+			try {
+				var o = JSON.parse(resp.text);
+
+				o = simplifyFormat(o);
+
+				cb(null, o);
+			} catch (ex) {
+				cb(ex);
+			}
+		});
+};
+
+/*getSongLyrics('aglzfmlrYXJhNG1yDgsSBUx5cmljGJbOqQcM', function(err, lines) {
+	console.log(err, lines);
+});*/
+/* RESULT:
+null, [ [ [ 71.166, ' ♪' ],
+    [ 71.666, ' ♪' ],
+    [ 72.166, ' ♪' ],
+    [ 72.666, ' ♪' ],
+    [ 73.166, ' ♪' ] ],
+  [ [ 73.666, 'Say ' ], [ 73.875, 'your ' ], [ 74, 'prayers' ] ],
+  [ [ 74.625, 'little ' ], [ 74.916, 'one' ] ],
+  [ [ 75.541, 'Don\'t ' ],
+    [ 75.75, 'forget, ' ],
+    [ 76.208, 'my ' ],
+    [ 76.625, 'son' ] ],
+	...
 */
 
 
 
 /*
 	5) FETCH SONG MP3
-	TODO
+*/
+var getSongMp3 = function(url, destinationDir, cb) {
+	request
+		.get(url)
+
+		.set('Origin', 'http://www.ukara.net')
+		.set('Accept-Language', 'en-US,en;q=0.8,pt-PT;q=0.6,pt;q=0.4,es;q=0.2,fr;q=0.2,nb;q=0.2')
+		.set('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.93 Safari/537.36')
+		.set('Accept', '*/*')
+		.set('Referer', 'http://www.ukara.net/karaoke/Main.swf')
+		.set('X-Requested-With', 'ShockwaveFlash/16.0.0.296')
+		//.set('Connection', 'keep-alive')
+
+		.end(function(err, resp) {
+			if (err) { return cb(err); }
+
+			// console.log(resp);
+
+			var ws = fs.createWriteStream(destinationDir + '/track.mp3', {encoding:'binary', flags:'w'});
+
+			resp.pipe(ws);
+
+			ws.on('error', function(err) {
+				cb(err);
+			});
+
+			ws.on('finish', function() {
+				ws.close(cb);
+			});
+		});
+};
+
+var getSongMp32 = function(url, destinationDir, cb) {
+	console.log( ['wget ', url, ' -O ', destinationDir, '/track.mp3'].join('') );
+	cb(null);
+};
+
+// var dir = 'songs/Metallica-Enter_Sandman';
+//fs.mkdirSync(dir);
+/*getSongMp3('http://data2.ikara.co/data3/karaokes/rk/16810.mp3', dir, function(err) {
+	console.log(err || 'OK!');
+});*/
+
+
+
+var fetchSong = function(songUrl, cb) {
+	getSongPageData(songUrl, function(err, songPageData) {
+		if (err) { return cb(err); }
+
+		console.log('\nsongPageData\n', songPageData);
+		/*{ songId: '30016810',
+		    password: 'KR286mBARlEYm/5WK7ewf6476o7+Tr+fIZVFv6AuF7dGV/CK2CSq1VxR7RpitKjA' }*/
+
+		getSongMetadata({songId:songPageData.songId, password:songPageData.password}, function(err, metadata) {
+			if (err) { return cb(err); }
+
+			console.log('\nmetadata\n', metadata);
+			/*{ title: 'Enter Sandman',
+			    artist: 'Metallica',
+			    lyricsKey: 'aglzfmlrYXJhNG1yDgsSBUx5cmljGJbOqQcM',
+			    mp3URL: 'http://data2.ikara.co/data3/karaokes/rk/16810.mp3' }*/
+
+			var dir = ['songs/', metadata.artist, '-', metadata.title].join('').replace(/[ \t]/g, '_');
+
+			try {
+				fs.mkdirSync(dir);
+			} catch(ex) {}
+
+			fs.writeFile(dir + '/metadata.json', JSON.stringify(metadata), function(err) {
+				if (err) { return cb(err); }
+
+				getSongLyrics(metadata.lyricsKey, function(err, lyrics) {
+					if (err) { return cb(err); }
+
+					console.log('\nlyrics\n', lyrics);
+					/*[[[23.1, 'asd'], [25,'xcv']], [[...]]]*/
+
+					fs.writeFile(dir + '/lyrics.json', JSON.stringify(lyrics), function(err) {
+						if (err) { return cb(err); }
+
+						getSongMp32(metadata.mp3URL, dir, function(err) {
+							if (err) { return cb(err); }
+
+							cb(null, {
+								songPageData: songPageData,
+								metadata:     metadata,
+								lyrics:       lyrics,
+								dir:          dir
+							});
+						});
+					});
+				});
+			});
+		});
+	});
+};
+
+/*fetchSong('http://www.ukara.net/karaoke/master-of-puppets-20028487', function(err, stuff) {
+	console.log(err);//, stuff);
+});
 */
 
+
+
+module.exports = {
+	querySong: querySong,
+	fetchSong: fetchSong
+};
